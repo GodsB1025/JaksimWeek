@@ -26,6 +26,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JaksimWeek"
         android:usesCleartextTraffic="true">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDfyNlesK9xvWC2_Y89wx5BRDZlm3Qtwhk" />
         <activity
             android:name=".ui.challenge.MapSelectActivity"
             android:exported="false" />
