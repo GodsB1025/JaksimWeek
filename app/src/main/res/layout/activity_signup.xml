@@ -25,6 +25,13 @@
         android:inputType="textPassword" />
 
     <EditText
+        android:id="@+id/et_password_confirm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:hint="비밀번호 확인"
+        android:inputType="textPassword" />
+    <EditText
         android:id="@+id/et_nickname"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

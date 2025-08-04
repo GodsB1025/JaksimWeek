@@ -8,6 +8,7 @@
     tools:context=".ui.challenge.CommentsFragment">
 
     <LinearLayout
+        android:id="@+id/commentVertical"
         android:layout_width="match_parent"
         android:layout_height="500dp"
         android:orientation="vertical">
@@ -21,13 +22,14 @@
         </androidx.recyclerview.widget.RecyclerView>
 
         <LinearLayout
+            android:id="@+id/commentHorizontal"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="5"
             android:orientation="horizontal">
 
             <EditText
-                android:id="@+id/editTextText"
+                android:id="@+id/inputComment"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -36,7 +38,7 @@
                 android:inputType="text" />
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/btnComment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:insetTop="0dp"
