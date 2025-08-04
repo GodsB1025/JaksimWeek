@@ -73,15 +73,25 @@ class ChatActivity : AppCompatActivity() {
 
     private fun sendMessage(text: String) {
         val messagesRef = database.child("messages").child(roomId).push()
-        val timestamp = ServerValue.TIMESTAMP
-        val message = ChatMessage(myUid, myNickname, text = text, timestamp = timestamp as Long, messageType = "text")
-        messagesRef.setValue(message) { error, _ ->
+        val message = ChatMessage(myUid, myNickname, text, null, System.currentTimeMillis(), "text")
+
+        // 2. Firebase에 보낼 데이터 Map 생성
+        val messageToSend = mutableMapOf<String, Any>(
+            "senderUid" to message.senderUid,
+            "senderNickname" to message.senderNickname,
+            "text" to message.text!!,
+            "messageType" to message.messageType,
+            "timestamp" to ServerValue.TIMESTAMP // Firebase가 서버에서 시간을 기록하도록 설정
+        )
+
+        messagesRef.setValue(messageToSend) { error, _ ->
             if (error == null) {
-                // 채팅방 목록에도 마지막 메시지 업데이트
-                val roomRef = database.child("chatrooms").child(roomId)
+                // 채팅방 마지막 메시지 업데이트
+                val roomRef =
+                    database.child("chatRooms").child(roomId) // <- 경로명 일관성 문제도 확인하세요 (아래 3번 항목)
                 val lastMessageUpdate = mapOf(
                     "lastMessage" to text,
-                    "lastMessageTimestamp" to timestamp
+                    "lastMessageTimestamp" to ServerValue.TIMESTAMP
                 )
                 roomRef.updateChildren(lastMessageUpdate)
             } else {
@@ -89,6 +99,4 @@ class ChatActivity : AppCompatActivity() {
             }
         }
     }
-
-    // 필요하다면 사진 메시지 전송 기능 (sendImageMessage) 추가
 }

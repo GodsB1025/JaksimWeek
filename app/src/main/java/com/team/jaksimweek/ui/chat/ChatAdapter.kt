@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.team.jaksimweek.R // 프로젝트 R 파일 경로에 맞게 수정
+import com.team.jaksimweek.R
 import java.text.SimpleDateFormat
 import java.util.*
 
