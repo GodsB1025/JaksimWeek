@@ -49,6 +49,9 @@
         <activity
             android:name=".ui.profile.EditProfileActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.challenge.AddPostActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.storage.FirebaseStorage
 import java.util.Date
+import com.team.jaksimweek.R
 
 class AddPostActivity : AppCompatActivity() {
     // ViewBinding 설정
@@ -65,6 +66,8 @@ class AddPostActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // ❗아래 ViewBinding 초기화 코드가 누락되었습니다. 반드시 추가하세요.
+        binding = ActivityAddPostBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupClickListeners()
