@@ -44,6 +44,11 @@ class ChallengeDetailActivity : AppCompatActivity() {
             return
         }
 
+        binding.btnCommentHandle.setOnClickListener {
+            val commentsFragment = CommentsFragment.newInstance(challengeId!!)
+            commentsFragment.show(supportFragmentManager, commentsFragment.tag)
+        }
+
         loadChallengeDetails()
     }
 
@@ -177,6 +182,7 @@ class ChallengeDetailActivity : AppCompatActivity() {
             binding.btnAction.isEnabled = false
         }
     }
+
 
     private fun updateChallengeStatus(newStatus: String) {
         firestore.collection("challenges").document(challengeId!!)
