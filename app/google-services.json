@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "165253399237",
+    "project_id": "jaksimweek",
+    "storage_bucket": "jaksimweek.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165253399237:android:c75fef5940f871137c66ac",
+        "android_client_info": {
+          "package_name": "com.team.jaksimweek"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjX5BifyO5WH0Ue2tNvkX6eBhqoW4l2ws"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
