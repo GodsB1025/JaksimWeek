@@ -28,9 +28,6 @@
         android:theme="@style/Theme.JaksimWeek"
         android:usesCleartextTraffic="true" >
         <activity
-            android:name=".ui.challenge.CommentsActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.main.MainActivity"
             android:exported="true" >
             <intent-filter>
