@@ -12,7 +12,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/temp"
+        android:src="@drawable/ic_person"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CornerSize50Percent" />
@@ -36,4 +36,17 @@
         android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit"
         app:layout_constraintStart_toStartOf="@+id/commentNickname"
         app:layout_constraintTop_toBottomOf="@+id/commentNickname" />
+
+    <TextView
+        android:id="@+id/commentTimestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="00:00"
+        android:textColor="#8C8C8C"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/commentNickname"
+        app:layout_constraintStart_toEndOf="@+id/commentNickname"
+        app:layout_constraintTop_toTopOf="@+id/commentNickname"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>

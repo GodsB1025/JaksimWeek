@@ -4,7 +4,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 
 data class Challenge(
-    @DocumentId val id: String = "",
+    val id: String = "",
     val creatorUid: String = "",
     val creatorNickname: String? = null,
     val title: String = "",
