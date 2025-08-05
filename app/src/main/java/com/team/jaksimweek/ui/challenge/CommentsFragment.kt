@@ -25,8 +25,6 @@ class CommentsFragment : BottomSheetDialogFragment() {
     private val auth by lazy { FirebaseAuth.getInstance() }
 
     private var challengeId: String? = null
-
-    // newInstance 패턴을 사용하여 challengeId를 받습니다.
     companion object {
         private const val ARG_CHALLENGE_ID = "challenge_id"
 
@@ -61,7 +59,6 @@ class CommentsFragment : BottomSheetDialogFragment() {
         setupRecyclerView()
         loadComments()
 
-        // 댓글 등록 버튼 클릭 리스너 설정
         binding.btnComment.setOnClickListener {
             val content = binding.inputComment.text.toString().trim()
             if (content.isNotEmpty()) {
@@ -79,14 +76,12 @@ class CommentsFragment : BottomSheetDialogFragment() {
             adapter = commentAdapter
         }
     }
-
-    // Firestore에서 댓글을 불러오는 함수
     private fun loadComments() {
         if (challengeId == null) return
 
         firestore.collection("challenges").document(challengeId!!)
             .collection("comments")
-            .orderBy("createdAt", Query.Direction.ASCENDING) // 시간순으로 정렬
+            .orderBy("createdAt", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
                     Log.w("CommentsFragment", "Listen failed.", error)
@@ -100,8 +95,6 @@ class CommentsFragment : BottomSheetDialogFragment() {
                 }
             }
     }
-
-    // 새로운 댓글을 Firestore에 추가하는 함수
     private fun addComment(content: String) {
         val currentUser = auth.currentUser
         if (currentUser == null) {
@@ -110,7 +103,6 @@ class CommentsFragment : BottomSheetDialogFragment() {
         }
         if (challengeId == null) return
 
-        // 사용자 닉네임을 가져오기 위해 'users' 컬렉션 조회
         firestore.collection("users").document(currentUser.uid).get()
             .addOnSuccessListener { userDocument ->
                 val nickname = userDocument.getString("nickname") ?: "익명"
@@ -125,7 +117,7 @@ class CommentsFragment : BottomSheetDialogFragment() {
                     .collection("comments")
                     .add(comment)
                     .addOnSuccessListener {
-                        binding.inputComment.text.clear() // 입력창 초기화
+                        binding.inputComment.text.clear()
                     }
                     .addOnFailureListener { e ->
                         Toast.makeText(context, "댓글 등록에 실패했습니다: ${e.message}", Toast.LENGTH_SHORT).show()

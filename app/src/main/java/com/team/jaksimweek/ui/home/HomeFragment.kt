@@ -40,7 +40,6 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupSearch()
-        // 초기에는 전체 목록을 보여줍니다.
         listenForChallengeUpdates("")
     }
 
@@ -58,16 +57,11 @@ class HomeFragment : Fragment() {
             }
         })
     }
-
-    /**
-     * 검색창에 TextWatcher를 설정하여 텍스트 변경을 감지합니다.
-     */
     private fun setupSearch() {
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // 텍스트가 변경될 때마다 검색 쿼리를 실행합니다.
                 val searchText = s.toString().trim()
                 listenForChallengeUpdates(searchText)
             }
@@ -76,23 +70,16 @@ class HomeFragment : Fragment() {
         })
     }
 
-    /**
-     * 검색어에 따라 'challenges' 컬렉션의 변경사항을 실시간으로 감지합니다.
-     * @param searchText 사용자가 입력한 검색어
-     */
     private fun listenForChallengeUpdates(searchText: String) {
-        // 기존 리스너가 있다면 제거하여 중복 실행을 방지합니다.
         firestoreListener?.remove()
 
         var query: Query = firestore.collection("challenges")
 
-        // 검색어가 있는 경우, 쿼리를 수정합니다.
         if (searchText.isNotEmpty()) {
             query = query.orderBy("title")
                 .whereGreaterThanOrEqualTo("title", searchText)
                 .whereLessThanOrEqualTo("title", searchText + '\uf8ff')
         } else {
-            // 검색어가 없는 경우, 최신순으로 정렬합니다.
             query = query.orderBy("createdAt", Query.Direction.DESCENDING)
         }
 

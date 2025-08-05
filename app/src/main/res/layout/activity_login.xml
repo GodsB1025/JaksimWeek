@@ -3,34 +3,67 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:gravity="center"
+    android:background="@color/white"
+    android:padding="24dp">
+
+    <ImageView
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:src="@drawable/logo"
+        android:scaleType="fitCenter"
+        android:layout_marginBottom="48dp"
+        android:contentDescription="작심위크 로고"/>
 
     <EditText
         android:id="@+id/et_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="이메일"
-        android:inputType="textEmailAddress" />
+        android:inputType="textEmailAddress"
+        android:background="@drawable/edittext_background"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"/>
 
     <EditText
         android:id="@+id/et_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="비밀번호"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:background="@drawable/edittext_background"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp"/>
 
     <Button
         android:id="@+id/btn_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="로그인" />
+        android:text="로그인"
+        android:backgroundTint="@color/brand_primary"
+        android:textColor="@color/white"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp"/>
 
-    <TextView
-        android:id="@+id/tv_go_to_signup"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="계정이 없으신가요? 회원가입"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"/>
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="계정이 없으신가요?"
+            android:textColor="@color/text_secondary"/>
+        <TextView
+            android:id="@+id/tv_go_to_signup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" 회원가입"
+            android:textColor="@color/brand_primary"
+            android:textStyle="bold"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"/>
+    </LinearLayout>
 
 </LinearLayout>

@@ -10,11 +10,12 @@ data class Challenge(
     val title: String = "",
     val description: String = "",
     val imageUrl: String? = null,
-    val status: String = "recruiting", // "recruiting", "in-progress", "completed"
+    val status: String = "recruiting",
     val location: Location? = null,
     val participantCount: Int = 0,
     val likeCount: Int = 0,
-    val createdAt: Timestamp = Timestamp.now()
+    val createdAt: Timestamp = Timestamp.now(),
+    val participantUids: List<String> = emptyList()
 )
 
 data class Location(

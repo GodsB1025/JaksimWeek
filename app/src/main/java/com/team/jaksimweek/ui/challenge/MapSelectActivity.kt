@@ -29,18 +29,14 @@ class MapSelectActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private var selectedLatLng: LatLng? = null
     private var selectedAddress: String? = null
-
-    // 위치 권한 요청을 처리하는 Launcher
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         when {
             permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
-                // 권한이 승인되면 내 위치 활성화
                 enableMyLocation()
             }
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                // 권한이 승인되면 내 위치 활성화
                 enableMyLocation()
             }
             else -> {
@@ -60,7 +56,6 @@ class MapSelectActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // '이 위치로 선택하기' 버튼 리스너
         binding.selectLocationButton.setOnClickListener {
             if (selectedLatLng != null && selectedAddress != null) {
                 val intent = Intent()
@@ -68,29 +63,25 @@ class MapSelectActivity : AppCompatActivity(), OnMapReadyCallback {
                 intent.putExtra("longitude", selectedLatLng!!.longitude)
                 intent.putExtra("address", selectedAddress)
                 setResult(RESULT_OK, intent)
-                finish() // 액티비티 종료
+                finish()
             } else {
                 Toast.makeText(this, "먼저 지도를 탭하여 위치를 선택하세요.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // 지도가 준비되면 호출되는 콜백
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        enableMyLocation() // 내 위치 기능 활성화
+        enableMyLocation()
 
-        // 지도 탭 리스너 설정
         mMap.setOnMapClickListener { latLng ->
-            mMap.clear() // 기존 마커 제거
-            mMap.addMarker(MarkerOptions().position(latLng)) // 새로운 마커 추가
+            mMap.clear()
+            mMap.addMarker(MarkerOptions().position(latLng))
             selectedLatLng = latLng
-            getAddressFromLatLng(latLng) // 좌표를 주소로 변환
+            getAddressFromLatLng(latLng)
         }
     }
-
-    // 내 위치 기능을 활성화하는 함수
     private fun enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
@@ -99,34 +90,28 @@ class MapSelectActivity : AppCompatActivity(), OnMapReadyCallback {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             mMap.isMyLocationEnabled = true
-            // 마지막으로 알려진 위치로 카메라 이동
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 if (location != null) {
                     val currentLatLng = LatLng(location.latitude, location.longitude)
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
                 } else {
-                    // 기본 위치 (서울)
                     val defaultLocation = LatLng(37.5665, 126.9780)
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 15f))
                 }
             }
         } else {
-            // 권한이 없으면 요청
             locationPermissionRequest.launch(arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ))
         }
     }
-
-    // 좌표를 주소로 변환하는 함수
     private fun getAddressFromLatLng(latLng: LatLng) {
         try {
             val geocoder = Geocoder(this, Locale.KOREAN)
             val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
             if (addresses != null && addresses.isNotEmpty()) {
                 selectedAddress = addresses[0].getAddressLine(0)
-                // 버튼 텍스트를 선택된 주소로 변경하여 사용자에게 확인시켜줌
                 binding.selectLocationButton.text = "'$selectedAddress' 선택 완료"
             } else {
                 selectedAddress = "주소를 찾을 수 없습니다."

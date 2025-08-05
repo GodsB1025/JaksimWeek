@@ -7,7 +7,7 @@ import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.team.jaksimweek.data.model.User
-import com.team.jaksimweek.databinding.ActivitySignupBinding // 뷰 바인딩 사용
+import com.team.jaksimweek.databinding.ActivitySignupBinding
 
 class SignUpActivity : AppCompatActivity() {
 
@@ -41,7 +41,6 @@ class SignUpActivity : AppCompatActivity() {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        // 회원가입 성공 -> Firestore에 추가 정보 저장
                         val uid = auth.currentUser?.uid ?: ""
                         val user = User(uid = uid, email = email, nickname = nickname)
 
@@ -57,7 +56,6 @@ class SignUpActivity : AppCompatActivity() {
                                 Toast.makeText(this, "정보 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
                             }
                     } else {
-                        // 회원가입 실패
                         Toast.makeText(this, "회원가입 실패: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                     }
                 }

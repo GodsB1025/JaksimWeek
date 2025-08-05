@@ -5,9 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/white"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     tools:context=".ui.home.HomeFragment">
 
-    <!-- 상단 검색창 -->
     <EditText
         android:id="@+id/et_search"
         android:layout_width="match_parent"
@@ -20,7 +22,6 @@
         android:inputType="text"
         android:padding="12dp" />
 
-    <!-- 챌린지 목록을 보여줄 RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_challenges"
         android:layout_width="match_parent"

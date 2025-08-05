@@ -24,17 +24,14 @@
         app:layout_constraintStart_toEndOf="@id/profileImageView"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/msgTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <ImageView
+        android:id="@+id/img_message"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:layout_marginTop="4dp"
-        android:padding="12dp"
-        android:text="받은 메시지 내용"
-        android:background="@drawable/bg_chat_received" android:textColor="@android:color/black"
+        android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="@+id/nicknameTextView"
-        app:layout_constraintTop_toBottomOf="@+id/nicknameTextView"
-        app:layout_constraintWidth_max="280dp" />
+        app:layout_constraintTop_toBottomOf="@+id/nicknameTextView" />
 
     <TextView
         android:id="@+id/timeTextView"
@@ -43,7 +40,10 @@
         android:layout_marginStart="4dp"
         android:text="오후 1:05"
         android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="@+id/msgTextView"
-        app:layout_constraintStart_toEndOf="@+id/msgTextView" />
+        android:textColor="@android:color/darker_gray"
+        android:background="#80FFFFFF"
+        android:padding="2dp"
+        app:layout_constraintBottom_toBottomOf="@+id/img_message"
+        app:layout_constraintStart_toEndOf="@+id/img_message" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

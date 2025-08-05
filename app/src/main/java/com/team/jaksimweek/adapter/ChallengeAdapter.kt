@@ -1,7 +1,9 @@
 package com.team.jaksimweek.adapter
 
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.team.jaksimweek.R
@@ -57,14 +59,24 @@ class ChallengeAdapter(private var challenges: List<Challenge>) :
         fun bind(challenge: Challenge) {
             binding.tvChallengeTitle.text = challenge.title
 
-            binding.tvChallengeStatus.text = when (challenge.status) {
-                "recruiting" -> "모집중"
-                "in-progress" -> "진행중"
-                "completed" -> "완료"
-                else -> challenge.status
+            val statusTextView = binding.tvChallengeStatus
+            val context = itemView.context
+            when (challenge.status) {
+                "recruiting" -> {
+                    statusTextView.text = "모집중"
+                    (statusTextView.background as? GradientDrawable)?.setColor(ContextCompat.getColor(context, R.color.status_recruiting))
+                }
+                "in-progress" -> {
+                    statusTextView.text = "진행중"
+                    (statusTextView.background as? GradientDrawable)?.setColor(ContextCompat.getColor(context, R.color.status_inprogress))
+                }
+                "completed" -> {
+                    statusTextView.text = "완료"
+                    (statusTextView.background as? GradientDrawable)?.setColor(ContextCompat.getColor(context, R.color.status_completed))
+                }
+                else -> statusTextView.text = challenge.status
             }
 
-            // 참여 인원 데이터 바인딩
             binding.tvParticipantCount.text = "${challenge.participantCount}명"
 
             Glide.with(itemView.context)

@@ -2,4 +2,13 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-</resources>
+
+    <color name="brand_primary">#20c997</color> <color name="brand_secondary">#1971c2</color> <color name="brand_accent">#38d9a9</color> <color name="brand_accent_dark">#1864ab</color> <color name="grey_light">#F8F9FA</color>
+    <color name="grey_medium">#DEE2E6</color>
+    <color name="grey_dark">#495057</color>
+
+    <color name="text_primary">#212529</color>
+    <color name="text_secondary">#868E96</color>
+    <color name="divider">#E9ECEF</color>
+
+    <color name="status_recruiting">#20c997</color> <color name="status_inprogress">#1971c2</color> <color name="status_completed">#868E96</color> </resources>
