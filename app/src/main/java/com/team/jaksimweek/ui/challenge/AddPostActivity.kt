@@ -147,7 +147,11 @@ class AddPostActivity : AppCompatActivity() {
     }
 
     private fun savePostToFirestore(uid: String, nickname: String, title: String, description: String, imageUrl: String?) {
+        // 1. 새로운 문서 참조를 만들어서 ID를 미리 확보합니다.
+        val newChallengeRef = firestore.collection("challenges").document()
+
         val post = hashMapOf<String, Any?>(
+            "id" to newChallengeRef.id,
             "creatorUid" to uid,
             "creatorNickname" to nickname, // 가져온 닉네임으로 저장
             "title" to title,
@@ -160,13 +164,12 @@ class AddPostActivity : AppCompatActivity() {
             "location" to selectedLocation
         )
 
-        firestore.collection("challenges")
-            .add(post)
-            .addOnSuccessListener { documentReference ->
+        newChallengeRef.set(post)
+            .addOnSuccessListener {
                 Toast.makeText(this, "챌린지 등록이 완료되었습니다.", Toast.LENGTH_SHORT).show()
 
                 val intent = Intent(this, ChallengeDetailActivity::class.java)
-                intent.putExtra("CHALLENGE_ID", documentReference.id)
+                intent.putExtra("CHALLENGE_ID", newChallengeRef.id)
                 startActivity(intent)
 
                 finish()
