@@ -28,13 +28,25 @@
         android:theme="@style/Theme.JaksimWeek"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ui.challenge.EditChallengeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.challenge.ChallengeDetailActivity"
+            android:exported="false" />
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDfyNlesK9xvWC2_Y89wx5BRDZlm3Qtwhk" />
+
+        <activity
+            android:name=".ui.challenge.MapSelectActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.chat.ChatActivity"
             android:exported="false" />
         <activity
             android:name=".ui.main.MainActivity"
             android:windowSoftInputMode="adjustResize"/>
-
         <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="true">
@@ -43,15 +55,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ui.auth.SignUpActivity"
             android:exported="false" />
-
-
-
         <activity
             android:name=".ui.profile.EditProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.challenge.AddPostActivity"
             android:exported="false" />
     </application>
 
