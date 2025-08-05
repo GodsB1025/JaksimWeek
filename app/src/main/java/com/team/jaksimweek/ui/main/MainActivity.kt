@@ -8,8 +8,8 @@ import com.team.jaksimweek.R
 import com.team.jaksimweek.databinding.ActivityMainBinding
 import com.team.jaksimweek.ui.auth.LoginActivity
 import com.team.jaksimweek.ui.challenge.AddPostActivity
-import com.team.jaksimweek.ui.chat.ChatFragment
 import com.team.jaksimweek.ui.home.HomeFragment
+import com.team.jaksimweek.ui.ChatFragment
 import com.team.jaksimweek.ui.profile.ProfileFragment
 
 class MainActivity : AppCompatActivity() {

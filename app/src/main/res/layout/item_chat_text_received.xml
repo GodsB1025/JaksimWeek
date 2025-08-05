@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/nicknameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="상대방 닉네임"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/msgTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:padding="12dp"
+        android:text="받은 메시지 내용"
+        android:textColor="@android:color/black"
+        app:layout_constraintStart_toStartOf="@+id/nicknameTextView"
+        app:layout_constraintTop_toBottomOf="@+id/nicknameTextView"
+        app:layout_constraintWidth_max="280dp" />
+
+    <TextView
+        android:id="@+id/timeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:text="오후 1:05"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/msgTextView"
+        app:layout_constraintStart_toEndOf="@+id/msgTextView" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
