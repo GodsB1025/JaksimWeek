@@ -2,12 +2,16 @@ package com.team.jaksimweek.ui.profile
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -46,30 +50,28 @@ class ProfileFragment : Fragment() {
 
         setupRecyclerView()
         setupClickListeners()
+        updateFilterButtonUI(binding.btnMyChallenge)
     }
 
     override fun onResume() {
         super.onResume()
         loadUserData()
-        // 화면에 처음 진입 시 '내가 작성한 챌린지'를 기본으로 로드
+
         loadMyChallenges()
+        updateFilterButtonUI(binding.btnMyChallenge)
     }
 
     private fun setupRecyclerView() {
-        // 1. 어댑터를 초기화합니다. (기존 어댑터 구조에 맞게)
         challengeAdapter = ChallengeAdapter(emptyList())
 
-        // 2. 어댑터에 정의된 setOnItemClickListener를 사용하여 리스너를 설정합니다.
         challengeAdapter.setOnItemClickListener(object : ChallengeAdapter.OnItemClickListener {
             override fun onItemClick(challenge: Challenge) {
-                // 아이템 클릭 시 상세 페이지로 이동
                 val intent = Intent(requireContext(), ChallengeDetailActivity::class.java)
-                intent.putExtra("challenge_id", challenge.id)
+                intent.putExtra("CHALLENGE_ID", challenge.id)
                 startActivity(intent)
             }
         })
 
-        // 3. RecyclerView에 어댑터와 레이아웃 매니저를 연결합니다.
         binding.rvChallenges.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = challengeAdapter
@@ -91,19 +93,38 @@ class ProfileFragment : Fragment() {
             showWithdrawConfirmationDialog()
         }
 
-        // 필터 버튼 클릭 리스너
         binding.btnMyChallenge.setOnClickListener {
+            updateFilterButtonUI(it as Button)
             loadMyChallenges()
         }
+        binding.btnParticipatingChallenge.setOnClickListener {
+            updateFilterButtonUI(it as Button)
+            loadParticipatingChallenges()
+        }
         binding.btnFavoriteChallenge.setOnClickListener {
+            updateFilterButtonUI(it as Button)
             loadFavoriteChallenges()
         }
         binding.btnBookmarkChallenge.setOnClickListener {
+            updateFilterButtonUI(it as Button)
             loadBookmarkedChallenges()
         }
     }
 
-    // 내가 작성한 챌린지 로드
+    private fun updateFilterButtonUI(selectedButton: Button) {
+        val buttons = listOf(binding.btnMyChallenge, binding.btnParticipatingChallenge, binding.btnFavoriteChallenge, binding.btnBookmarkChallenge)
+
+        buttons.forEach { button ->
+            if (button == selectedButton) {
+                button.setTextColor(ContextCompat.getColor(requireContext(), R.color.brand_primary))
+                button.setTypeface(null, Typeface.BOLD)
+            } else {
+                button.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary))
+                button.setTypeface(null, Typeface.NORMAL)
+            }
+        }
+    }
+
     private fun loadMyChallenges() {
         val uid = auth.currentUser?.uid ?: return
 
@@ -121,23 +142,39 @@ class ProfileFragment : Fragment() {
             }
     }
 
-    // 좋아요 누른 챌린지 로드
+    private fun loadParticipatingChallenges() {
+        val uid = auth.currentUser?.uid ?: return
+
+        firestore.collection("challenges")
+            .whereArrayContains("participantUids", uid)
+            .get()
+            .addOnSuccessListener { documents ->
+                val allParticipating = documents.toObjects(Challenge::class.java)
+                val participatingOnly = allParticipating.filter { it.creatorUid != uid }
+
+                challengeAdapter.updateData(participatingOnly.sortedByDescending { it.createdAt })
+                Log.d("ProfileFragment", "참여중인 챌린지 ${participatingOnly.size}개 로드 성공")
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "참여중인 챌린지 목록 로딩 실패", Toast.LENGTH_SHORT).show()
+                Log.e("ProfileFragment", "참여중인 챌린지 목록 로딩 실패", e)
+            }
+    }
+
     private fun loadFavoriteChallenges() {
         val uid = auth.currentUser?.uid ?: return
 
-        // 1. 현재 유저의 정보를 가져옵니다.
         firestore.collection("users").document(uid).get()
             .addOnSuccessListener { document ->
                 val user = document.toObject(User::class.java)
-                val likedIds = user?.likedChallengeIds // 2. 좋아요 누른 챌린지 ID 목록을 가져옵니다.
+                val likedIds = user?.likedChallengeIds
 
                 if (likedIds.isNullOrEmpty()) {
-                    challengeAdapter.updateData(emptyList()) // 목록이 없으면 리스트를 비웁니다.
+                    challengeAdapter.updateData(emptyList())
                     Log.d("ProfileFragment", "좋아요 챌린지가 없습니다.")
                     return@addOnSuccessListener
                 }
 
-                // 3. ID 목록을 사용하여 'challenges' 컬렉션에서 해당 챌린지들을 가져옵니다.
                 firestore.collection("challenges").whereIn("id", likedIds)
                     .get()
                     .addOnSuccessListener { challengesSnapshot ->
@@ -156,23 +193,20 @@ class ProfileFragment : Fragment() {
             }
     }
 
-    // 북마크한 챌린지 로드
     private fun loadBookmarkedChallenges() {
         val uid = auth.currentUser?.uid ?: return
 
-        // 1. 현재 유저의 정보를 가져옵니다.
         firestore.collection("users").document(uid).get()
             .addOnSuccessListener { document ->
                 val user = document.toObject(User::class.java)
-                val bookmarkedIds = user?.bookmarkedChallengeIds // 2. 북마크한 챌린지 ID 목록을 가져옵니다.
+                val bookmarkedIds = user?.bookmarkedChallengeIds
 
                 if (bookmarkedIds.isNullOrEmpty()) {
-                    challengeAdapter.updateData(emptyList()) // 목록이 없으면 리스트를 비웁니다.
+                    challengeAdapter.updateData(emptyList())
                     Log.d("ProfileFragment", "북마크 챌린지가 없습니다.")
                     return@addOnSuccessListener
                 }
 
-                // 3. ID 목록을 사용하여 'challenges' 컬렉션에서 해당 챌린지들을 가져옵니다.
                 firestore.collection("challenges").whereIn("id", bookmarkedIds)
                     .get()
                     .addOnSuccessListener { challengesSnapshot ->
@@ -228,7 +262,6 @@ class ProfileFragment : Fragment() {
 
     private fun withdrawUser() {
         val uid = auth.currentUser?.uid ?: return
-        // 프로필 이미지가 없을 수도 있으므로 삭제 실패는 무시하고 계속 진행합니다.
         storage.reference.child("profile_images/$uid.jpg").delete()
             .addOnCompleteListener {
                 firestore.collection("users").document(uid).delete()

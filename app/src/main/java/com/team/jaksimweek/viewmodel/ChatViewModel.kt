@@ -1,4 +1,4 @@
-package com.team.jaksimweek.viewmodel // 실제 프로젝트 구조에 맞게 수정
+package com.team.jaksimweek.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

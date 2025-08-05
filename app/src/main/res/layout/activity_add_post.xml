@@ -5,20 +5,44 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".ui.challenge.AddPostActivity">
 
-    <ScrollView
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize">
+
+            <Button
+                android:id="@+id/saveButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="챌린지 등록하기"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/brand_primary"/>
+
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:paddingBottom="100dp"> <!-- FAB에 가려지지 않도록 하단 패딩 추가 -->
+            android:padding="16dp">
 
-            <!-- 제목 입력 -->
             <EditText
                 android:id="@+id/titleEditText"
                 android:layout_width="match_parent"
@@ -26,9 +50,8 @@
                 android:background="@drawable/edittext_background"
                 android:hint="제목을 입력하세요"
                 android:inputType="text"
-                android:padding="12dp" />
+                android:padding="16dp" />
 
-            <!-- 내용 입력 -->
             <EditText
                 android:id="@+id/contentEditText"
                 android:layout_width="match_parent"
@@ -38,9 +61,8 @@
                 android:gravity="top"
                 android:hint="챌린지 내용을 입력하세요"
                 android:inputType="textMultiLine"
-                android:padding="12dp" />
+                android:padding="16dp" />
 
-            <!-- 첨부된 사진 -->
             <ImageView
                 android:id="@+id/postImageView"
                 android:layout_width="match_parent"
@@ -48,30 +70,22 @@
                 android:layout_marginTop="16dp"
                 android:scaleType="centerCrop"
                 android:visibility="gone"
+                tools:src="@tools:sample/backgrounds/scenic"
                 tools:visibility="visible" />
 
-            <!-- 선택된 위치 정보 -->
             <TextView
                 android:id="@+id/locationTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:padding="8dp"
-                android:text="선택된 위치 정보가 없습니다." />
-
-            <!-- 등록 버튼 -->
-            <Button
-                android:id="@+id/saveButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:background="@drawable/edittext_background"
                 android:padding="16dp"
-                android:text="챌린지 등록하기" />
+                android:text="선택된 위치 정보가 없습니다."
+                android:textColor="@color/text_secondary" />
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <!-- 위치 선택 FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_location"
         android:layout_width="wrap_content"
@@ -82,9 +96,10 @@
         android:src="@drawable/ic_location"
         app:fabSize="normal"
         android:visibility="invisible"
+        app:backgroundTint="@color/brand_secondary"
+        app:tint="@color/white"
         tools:visibility="visible"/>
 
-    <!-- 사진 추가 FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_image"
         android:layout_width="wrap_content"
@@ -95,9 +110,10 @@
         android:src="@drawable/ic_camera"
         app:fabSize="normal"
         android:visibility="invisible"
+        app:backgroundTint="@color/brand_secondary"
+        app:tint="@color/white"
         tools:visibility="visible"/>
 
-    <!-- 메인 FAB (+) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_main"
         android:layout_width="wrap_content"
@@ -105,6 +121,8 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
-        app:fabSize="normal" />
+        app:fabSize="normal"
+        app:backgroundTint="@color/brand_primary"
+        app:tint="@color/white"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

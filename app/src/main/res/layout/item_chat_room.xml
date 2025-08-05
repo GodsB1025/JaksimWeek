@@ -1,16 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp"
+    android:padding="16dp"
     android:gravity="center_vertical"
     android:background="?android:attr/selectableItemBackground">
 
     <ImageView
-        android:id="@+id/iv_user_profile"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:id="@+id/iv_room_icon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:src="@drawable/ic_person"
         android:layout_marginEnd="16dp"/>
 
@@ -21,31 +22,31 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tv_nickname"
+            android:id="@+id/tv_room_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
-            android:text="사용자 닉네임" />
+            tools:text="한강 플로깅 챌린지 그룹방" />
 
         <TextView
-            android:id="@+id/tv_email"
+            android:id="@+id/tv_last_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/text_secondary"
-            android:text="user@example.com"/>
-
+            tools:text="네! 내일 2시에 뵙겠습니다." />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btn_start_chat"
+    <TextView
+        android:id="@+id/tv_timestamp"
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:text="채팅하기"
+        android:layout_height="wrap_content"
         android:textSize="12sp"
-        android:paddingHorizontal="16dp"
-        android:backgroundTint="@color/brand_primary"
-        android:textColor="@color/white"/>
+        android:textColor="@color/text_secondary"
+        tools:text="14:30" />
+
 </LinearLayout>

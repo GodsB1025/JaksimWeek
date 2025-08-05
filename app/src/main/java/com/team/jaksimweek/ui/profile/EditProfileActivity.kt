@@ -25,7 +25,6 @@ class EditProfileActivity : AppCompatActivity() {
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             selectedImageUri = uri
-            // 선택한 이미지로 뷰 업데이트 (Glide 사용)
             Glide.with(this)
                 .load(uri)
                 .circleCrop()
@@ -60,11 +59,10 @@ class EditProfileActivity : AppCompatActivity() {
                     binding.etNickname.setText(user.nickname)
                     binding.etBio.setText(user.bio)
 
-                    // Glide를 사용해 프로필 이미지 로드 (placeholder 및 error 추가)
                     Glide.with(this)
                         .load(user.profileImageUrl)
-                        .placeholder(R.drawable.ic_person) // 로딩 중에 보여줄 기본 이미지
-                        .error(R.drawable.ic_person)       // 로드 실패 시 보여줄 기본 이미지
+                        .placeholder(R.drawable.ic_person)
+                        .error(R.drawable.ic_person)
                         .circleCrop()
                         .into(binding.ivProfile)
                 }

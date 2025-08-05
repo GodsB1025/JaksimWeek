@@ -21,8 +21,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 초기 화면을 HomeFragment로 설정
-        replaceFragment(HomeFragment()) // HomeFragment는 임시로 만들어야 함
+        replaceFragment(HomeFragment())
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -31,11 +30,10 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_chat -> {
-                    replaceFragment(ChatFragment()) // ChatFragment는 임시로 만들어야 함
+                    replaceFragment(ChatFragment())
                     true
                 }
                 R.id.navigation_post -> {
-                    // 포스팅은 보통 새 액티비티를 띄움
                      startActivity(Intent(this, AddPostActivity::class.java))
                     true
                 }

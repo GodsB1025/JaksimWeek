@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
+    app:cardCornerRadius="16dp"
     app:cardElevation="4dp">
 
     <LinearLayout
@@ -16,9 +16,9 @@
         <ImageView
             android:id="@+id/iv_challenge_image"
             android:layout_width="match_parent"
-            android:layout_height="140dp"
+            android:layout_height="120dp"
             android:scaleType="centerCrop"
-            android:background="#E0E0E0"
+            android:background="@color/grey_light"
             tools:src="@tools:sample/backgrounds/scenic" />
 
         <LinearLayout
@@ -34,14 +34,14 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold"
-                tools:text="한강에서 같이 플로깅해요!" />
+                tools:text="챌린지 제목" />
 
-            <!-- 상태와 참여 인원을 한 줄에 표시하기 위한 레이아웃 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -49,30 +49,30 @@
                     android:id="@+id/tv_challenge_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/edittext_background"
+                    android:background="@drawable/status_background"
                     android:paddingStart="8dp"
-                    android:paddingTop="2dp"
+                    android:paddingTop="4dp"
                     android:paddingEnd="8dp"
-                    android:paddingBottom="2dp"
+                    android:paddingBottom="4dp"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     tools:text="모집중" />
 
-                <!-- 공간을 채우기 위한 View -->
                 <View
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
-                <!-- 참여 인원 TextView -->
                 <TextView
                     android:id="@+id/tv_participant_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_person"
                     android:drawablePadding="4dp"
+                    android:drawableTint="@color/text_secondary"
                     android:gravity="center"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                    android:textColor="@color/text_secondary"
                     tools:text="5명" />
             </LinearLayout>
         </LinearLayout>

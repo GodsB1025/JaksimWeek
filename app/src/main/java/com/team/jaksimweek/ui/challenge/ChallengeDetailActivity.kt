@@ -3,6 +3,7 @@ package com.team.jaksimweek.ui.challenge
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -18,6 +19,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.team.jaksimweek.R
 import com.team.jaksimweek.data.model.Challenge
 import com.team.jaksimweek.databinding.ActivityChallengeDetailBinding
+import com.team.jaksimweek.ui.chat.ChatUtil
 
 class ChallengeDetailActivity : AppCompatActivity() {
 
@@ -31,15 +33,15 @@ class ChallengeDetailActivity : AppCompatActivity() {
     private var isCreator = false
     private var isBookmarked = false
     private var isLiked = false
+    private var isParticipant = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChallengeDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 툴바 설정 (ViewBinding 사용)
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true) // 뒤로가기 버튼 활성화
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         challengeId = intent.getStringExtra("CHALLENGE_ID")
 
@@ -49,22 +51,18 @@ class ChallengeDetailActivity : AppCompatActivity() {
             return
         }
 
-        //댓글창 띄우기
         binding.btnCommentsHandle.setOnClickListener {
             val commentsFragment = CommentsFragment.newInstance(challengeId!!)
             commentsFragment.show(supportFragmentManager, commentsFragment.tag)
         }
 
-        //북마크 토글
         binding.btnBookMark.setOnClickListener {
             toggleBookmark()
         }
 
-        //좋아요 토글
         binding.btnFavorite.setOnClickListener {
             toggleFavorite()
         }
-
         loadChallengeDetails()
         loadCommentCount()
     }
@@ -78,7 +76,7 @@ class ChallengeDetailActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            // 뒤로가기 버튼 클릭 처리
+
             android.R.id.home -> {
                 finish()
                 true
@@ -100,6 +98,7 @@ class ChallengeDetailActivity : AppCompatActivity() {
     private fun loadChallengeDetails() {
         firestore.collection("challenges").document(challengeId!!)
             .addSnapshotListener { document, error ->
+                if (isFinishing || isDestroyed) return@addSnapshotListener
                 if (error != null) {
                     Toast.makeText(this, "정보 로딩에 실패했습니다.", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
@@ -108,9 +107,13 @@ class ChallengeDetailActivity : AppCompatActivity() {
                 if (document != null && document.exists()) {
                     currentChallenge = document.toObject(Challenge::class.java)
                     currentChallenge?.let {
+                        val currentUserUid = auth.currentUser?.uid
+                        isCreator = currentUserUid == it.creatorUid
+                        isParticipant = it.participantUids.contains(currentUserUid)
+
                         setupUI(it)
-                        loadBookmarkStatus() //북마크 상태 불러오기
-                        loadFavoriteStatus()    //좋아요 상태 불러오기
+                        loadBookmarkStatus()
+                        loadFavoriteStatus()
                     }
                 } else {
                     Toast.makeText(this, "삭제되었거나 없는 챌린지입니다.", Toast.LENGTH_SHORT).show()
@@ -118,8 +121,6 @@ class ChallengeDetailActivity : AppCompatActivity() {
                 }
             }
     }
-
-    // 댓글 수를 실시간으로 가져와 UI에 업데이트하는 함수
     private fun loadCommentCount() {
         if (challengeId == null) return
         val commentCount = binding.commentCount
@@ -128,13 +129,11 @@ class ChallengeDetailActivity : AppCompatActivity() {
             .collection("comments")
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
-                    // 오류 처리
                     binding.commentCount.text = "-"
                     return@addSnapshotListener
                 }
 
                 if (snapshots != null) {
-                    // snapshot의 개수가 바로 댓글의 개수입니다.
                     binding.commentCount.text = "${snapshots.size()}"
                 } else {
                     binding.commentCount.text = "0"
@@ -143,9 +142,7 @@ class ChallengeDetailActivity : AppCompatActivity() {
     }
 
     private fun setupUI(challenge: Challenge) {
-        // 툴바 제목을 챌린지 제목으로 설정
         binding.toolbar.title = challenge.title
-
         binding.tvChallengeTitle.text = challenge.title
         binding.tvCreatorNickname.text = "게시자: ${challenge.creatorNickname ?: "정보 없음"}"
         binding.tvParticipantCount.text = "참여 인원: ${challenge.participantCount}명"
@@ -163,8 +160,6 @@ class ChallengeDetailActivity : AppCompatActivity() {
             .placeholder(R.drawable.edittext_background)
             .into(binding.ivChallengeImage)
 
-        val currentUserUid = auth.currentUser?.uid
-        isCreator = currentUserUid == challenge.creatorUid
         invalidateOptionsMenu()
 
         if (isCreator) {
@@ -212,7 +207,6 @@ class ChallengeDetailActivity : AppCompatActivity() {
         val challengeDocRef = firestore.collection("challenges").document(challengeId!!) // 챌린지 문서 참조 추가
         val favoriteButton = binding.btnFavorite
 
-        //애니메이션 코드
         val scaleDown = AnimationUtils.loadAnimation(this, R.anim.icon_scale_down)
         favoriteButton.startAnimation(scaleDown)
         scaleDown.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
@@ -221,16 +215,14 @@ class ChallengeDetailActivity : AppCompatActivity() {
             override fun onAnimationEnd(animation: android.view.animation.Animation?) {
                 val updatedStatus = !isLiked
 
-                // *** 수정된 부분 1: 필드 이름 변경 및 likeCount 업데이트 추가 ***
                 if (updatedStatus) {
                     userDocRef.update("likedChallengeIds", FieldValue.arrayUnion(challengeId))
-                    challengeDocRef.update("likeCount", FieldValue.increment(1)) // 좋아요 수 증가
+                    challengeDocRef.update("likeCount", FieldValue.increment(1))
                 } else {
                     userDocRef.update("likedChallengeIds", FieldValue.arrayRemove(challengeId))
-                    challengeDocRef.update("likeCount", FieldValue.increment(-1)) // 좋아요 수 감소
+                    challengeDocRef.update("likeCount", FieldValue.increment(-1))
                 }
 
-                // 아래 코드는 성공/실패 리스너가 필요 없으므로 바로 실행
                 isLiked = updatedStatus
                 updateFavoriteUIWithAnimation(favoriteButton)
             }
@@ -273,9 +265,8 @@ class ChallengeDetailActivity : AppCompatActivity() {
         }
 
         val userDocRef = firestore.collection("users").document(currentUserUid)
-        val bookmarkButton = binding.btnBookMark // ImageButton 참조
+        val bookmarkButton = binding.btnBookMark
 
-        // 축소 애니메이션 시작
         val scaleDown = AnimationUtils.loadAnimation(this, R.anim.icon_scale_down)
         bookmarkButton.startAnimation(scaleDown)
 
@@ -293,10 +284,9 @@ class ChallengeDetailActivity : AppCompatActivity() {
 
                 updateTask.addOnSuccessListener {
                     isBookmarked = updatedStatus
-                    updateBookmarkUIWithAnimation(bookmarkButton) // 아이콘 변경 및 확대 애니메이션 적용
+                    updateBookmarkUIWithAnimation(bookmarkButton)
                 }.addOnFailureListener {
                     Toast.makeText(this@ChallengeDetailActivity, "북마크 변경에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                    // 오류 발생 시 UI를 원래대로 되돌립니다.
                     isBookmarked = !isBookmarked
                     updateBookmarkUI()
                 }
@@ -311,7 +301,6 @@ class ChallengeDetailActivity : AppCompatActivity() {
         } else {
             button.setImageResource(R.drawable.ic_bookmark_border)
         }
-        // 확대 애니메이션 시작
         val scaleUp = AnimationUtils.loadAnimation(this, R.anim.icon_scale_up)
         button.startAnimation(scaleUp)
     }
@@ -323,15 +312,12 @@ class ChallengeDetailActivity : AppCompatActivity() {
         }
     }
     private fun loadBookmarkStatus() {
-        val currentUserUid = auth.currentUser?.uid ?: return // 로그인 상태가 아니면 종료
+        val currentUserUid = auth.currentUser?.uid ?: return
         firestore.collection("users").document(currentUserUid).get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    // Firestore의 'bookmarkedChallenges' 필드에서 챌린지 ID 목록을 가져옵니다.
                     val bookmarkedChallenges = document.get("bookmarkedChallengeIds") as? List<String> ?: emptyList()
-                    // 현재 챌린지 ID가 목록에 포함되어 있는지 확인하여 isBookmarked 상태를 설정합니다.
                     isBookmarked = bookmarkedChallenges.contains(challengeId)
-                    // 상태에 맞게 UI를 업데이트합니다.
                     updateBookmarkUI()
                 }
             }
@@ -342,30 +328,41 @@ class ChallengeDetailActivity : AppCompatActivity() {
 
     private fun setupButtonForCreator(challenge: Challenge) {
         binding.btnAction.visibility = View.VISIBLE
-        if (challenge.status == "recruiting") {
-            binding.btnAction.text = "모집 완료"
-            binding.btnAction.setOnClickListener {
+        binding.btnAction.isEnabled = true
+
+        when (challenge.status) {
+            "recruiting" -> {
+                binding.btnAction.text = "모집 완료"
+                binding.btnAction.setOnClickListener {
+                    showCompleteConfirmationDialog()
+                }
+            }
+            "in-progress" -> {
+                binding.btnAction.text = "챌린지 완료"
+                binding.btnAction.setOnClickListener {
+                    showFinishChallengeDialog()
+                }
+            }
+            "completed" -> {
+                binding.btnAction.text = "완료된 챌린지"
+                binding.btnAction.isEnabled = false
+            }
+            else -> {
+                binding.btnAction.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun showFinishChallengeDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("챌린지 완료")
+            .setMessage("이 챌린지를 최종 완료 상태로 변경하시겠습니까?")
+            .setPositiveButton("완료") { _, _ ->
                 updateChallengeStatus("completed")
             }
-        } else {
-            binding.btnAction.text = "모집이 완료된 챌린지입니다"
-            binding.btnAction.isEnabled = false
-        }
+            .setNegativeButton("취소", null)
+            .show()
     }
-
-    private fun setupButtonForParticipant(challenge: Challenge) {
-        binding.btnAction.visibility = View.VISIBLE
-        if (challenge.status == "recruiting") {
-            binding.btnAction.text = "참가 요청"
-            binding.btnAction.setOnClickListener {
-                Toast.makeText(this, "참가 요청이 완료되었습니다 (기능 구현 필요)", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            binding.btnAction.text = "참가할 수 없는 챌린지입니다"
-            binding.btnAction.isEnabled = false
-        }
-    }
-
 
     private fun updateChallengeStatus(newStatus: String) {
         firestore.collection("challenges").document(challengeId!!)
@@ -375,6 +372,98 @@ class ChallengeDetailActivity : AppCompatActivity() {
             }
             .addOnFailureListener {
                 Toast.makeText(this, "상태 변경에 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun showCompleteConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("모집 완료")
+            .setMessage("챌린지 모집을 완료하시겠습니까? 참여자들과 함께 그룹 채팅방이 생성됩니다.")
+            .setPositiveButton("완료") { _, _ ->
+                updateChallengeStatusAndCreateGroupChat()
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    private fun updateChallengeStatusAndCreateGroupChat() {
+        firestore.collection("challenges").document(challengeId!!)
+            .update("status", "in-progress")
+            .addOnSuccessListener {
+                Toast.makeText(this, "챌린지 상태가 변경되었습니다.", Toast.LENGTH_SHORT).show()
+
+                currentChallenge?.let { challenge ->
+                    val allMembers = challenge.participantUids.toMutableList()
+                    if (!allMembers.contains(challenge.creatorUid)) {
+                        allMembers.add(challenge.creatorUid)
+                    }
+
+                    if (allMembers.size > 1) {
+                        ChatUtil.createGroupChatRoom(challenge.id, challenge.title, allMembers) { roomId ->
+                            Log.d("ChallengeDetail", "그룹 채팅방 생성 완료: $roomId")
+                            Toast.makeText(this, "'${challenge.title}' 그룹 채팅방이 생성되었습니다.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "상태 변경에 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun setupButtonForParticipant(challenge: Challenge) {
+        binding.btnAction.visibility = View.VISIBLE
+        if (challenge.status == "recruiting") {
+            if (isParticipant) {
+                binding.btnAction.text = "참가 취소"
+                binding.btnAction.isEnabled = true
+                binding.btnAction.setOnClickListener {
+                    toggleParticipation(false)
+                }
+            } else {
+                binding.btnAction.text = "참가하기"
+                binding.btnAction.isEnabled = true
+                binding.btnAction.setOnClickListener {
+                    toggleParticipation(true)
+                }
+            }
+        } else {
+            binding.btnAction.text = "참가할 수 없는 챌린지입니다"
+            binding.btnAction.isEnabled = false
+        }
+    }
+
+    private fun toggleParticipation(join: Boolean) {
+        val currentUserUid = auth.currentUser?.uid
+        if (currentUserUid == null) {
+            Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        binding.btnAction.isEnabled = false
+
+        val challengeDocRef = firestore.collection("challenges").document(challengeId!!)
+        val updateTask = if (join) {
+            challengeDocRef.update(
+                "participantUids", FieldValue.arrayUnion(currentUserUid),
+                "participantCount", FieldValue.increment(1)
+            )
+        } else {
+            challengeDocRef.update(
+                "participantUids", FieldValue.arrayRemove(currentUserUid),
+                "participantCount", FieldValue.increment(-1)
+            )
+        }
+
+        updateTask
+            .addOnSuccessListener {
+                val message = if (join) "챌린지 참여가 완료되었습니다." else "참가를 취소했습니다."
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                binding.btnAction.isEnabled = true
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "작업에 실패했습니다: ${e.message}", Toast.LENGTH_SHORT).show()
+                binding.btnAction.isEnabled = true
             }
     }
 }

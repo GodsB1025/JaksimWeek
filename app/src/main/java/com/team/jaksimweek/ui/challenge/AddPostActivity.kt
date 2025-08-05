@@ -112,12 +112,10 @@ class AddPostActivity : AppCompatActivity() {
 
         binding.saveButton.isEnabled = false
 
-        // 1. Firestore의 'users' 컬렉션에서 닉네임을 먼저 가져옵니다.
         firestore.collection("users").document(currentUser.uid).get()
             .addOnSuccessListener { userDocument ->
                 val userNickname = userDocument.getString("nickname") ?: "익명"
 
-                // 2. 닉네임을 가져온 후, 포스팅 절차를 진행합니다.
                 if (imageUri != null) {
                     uploadImageAndSavePost(currentUser.uid, userNickname, title, description)
                 } else {
@@ -147,13 +145,12 @@ class AddPostActivity : AppCompatActivity() {
     }
 
     private fun savePostToFirestore(uid: String, nickname: String, title: String, description: String, imageUrl: String?) {
-        // 1. 새로운 문서 참조를 만들어서 ID를 미리 확보합니다.
         val newChallengeRef = firestore.collection("challenges").document()
 
         val post = hashMapOf<String, Any?>(
             "id" to newChallengeRef.id,
             "creatorUid" to uid,
-            "creatorNickname" to nickname, // 가져온 닉네임으로 저장
+            "creatorNickname" to nickname,
             "title" to title,
             "description" to description,
             "imageUrl" to imageUrl,

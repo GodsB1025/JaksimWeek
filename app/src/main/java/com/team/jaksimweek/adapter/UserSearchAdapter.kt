@@ -1,4 +1,4 @@
-package com.team.jaksimweek.adapter // 실제 프로젝트 구조에 맞게 수정
+package com.team.jaksimweek.adapter
 
 import android.util.Log
 import android.view.LayoutInflater
@@ -6,8 +6,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.team.jaksimweek.data.model.User // 제공해주신 User 데이터 클래스
-import com.team.jaksimweek.databinding.ItemUserSearchBinding // ViewBinding 클래스
+import com.bumptech.glide.Glide
+import com.team.jaksimweek.R
+import com.team.jaksimweek.data.model.User
+import com.team.jaksimweek.databinding.ItemUserSearchBinding
 
 class UserSearchAdapter(
     private val onChatClick: (User) -> Unit
@@ -19,6 +21,16 @@ class UserSearchAdapter(
 
         fun bind(user: User, onChatClick: (User) -> Unit) {
             binding.tvNickname.text = user.nickname ?: "알 수 없는 사용자"
+            binding.tvEmail.text = user.email
+
+
+            Glide.with(itemView.context)
+                .load(user.profileImageUrl)
+                .placeholder(R.drawable.ic_person)
+                .error(R.drawable.ic_person)
+                .circleCrop()
+                .into(binding.ivUserProfile)
+
             binding.btnStartChat.setOnClickListener {
                 Log.d("ChatDebug", "💬 btnStartChat clicked for ${user.uid}")
                 onChatClick(user)
