@@ -1,10 +1,15 @@
 package com.team.jaksimweek.ui.challenge
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import java.io.IOException
 import java.util.Locale
 import com.team.jaksimweek.R
 
@@ -56,32 +62,99 @@ class MapSelectActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        binding.selectLocationButton.setOnClickListener {
-            if (selectedLatLng != null && selectedAddress != null) {
-                val intent = Intent()
-                intent.putExtra("latitude", selectedLatLng!!.latitude)
-                intent.putExtra("longitude", selectedLatLng!!.longitude)
-                intent.putExtra("address", selectedAddress)
-                setResult(RESULT_OK, intent)
-                finish()
-            } else {
-                Toast.makeText(this, "먼저 지도를 탭하여 위치를 선택하세요.", Toast.LENGTH_SHORT).show()
+        if (intent.getBooleanExtra("displayOnly", false)) {
+            binding.selectLocationButton.visibility = View.GONE
+            binding.searchLayout.visibility = View.GONE
+        } else {
+            setupSearch()
+            binding.selectLocationButton.setOnClickListener {
+                if (selectedLatLng != null && selectedAddress != null) {
+                    val intent = Intent()
+                    intent.putExtra("latitude", selectedLatLng!!.latitude)
+                    intent.putExtra("longitude", selectedLatLng!!.longitude)
+                    intent.putExtra("address", selectedAddress)
+                    setResult(RESULT_OK, intent)
+                    finish()
+                } else {
+                    Toast.makeText(this, "먼저 지도를 탭하거나 검색하여 위치를 선택하세요.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
+    private fun setupSearch() {
+        binding.btnSearch.setOnClickListener {
+            searchLocation()
+        }
+        binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                searchLocation()
+                true
+            } else {
+                false
+            }
+        }
+    }
+    private fun searchLocation() {
+        val searchQuery = binding.etSearch.text.toString()
+        if (searchQuery.isBlank()) {
+            Toast.makeText(this, "검색어를 입력해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        hideKeyboard()
+        val geocoder = Geocoder(this, Locale.KOREAN)
+        try {
+            val addressList: List<Address>? = geocoder.getFromLocationName(searchQuery, 1)
+            if (addressList != null && addressList.isNotEmpty()) {
+                val address = addressList[0]
+                val latLng = LatLng(address.latitude, address.longitude)
+                mMap.clear()
+                mMap.addMarker(MarkerOptions().position(latLng).title(searchQuery))
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                selectedLatLng = latLng
+                getAddressFromLatLng(latLng)
+            } else {
+                Toast.makeText(this, "검색 결과가 없습니다.", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Toast.makeText(this, "지오코딩 서비스에 접근할 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+    }
+
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        enableMyLocation()
+        val lat = intent.getDoubleExtra("latitude", 0.0)
+        val lng = intent.getDoubleExtra("longitude", 0.0)
+        val address = intent.getStringExtra("address")
+        val displayOnly = intent.getBooleanExtra("displayOnly", false)
 
-        mMap.setOnMapClickListener { latLng ->
-            mMap.clear()
-            mMap.addMarker(MarkerOptions().position(latLng))
-            selectedLatLng = latLng
-            getAddressFromLatLng(latLng)
+        if (lat != 0.0 && lng != 0.0) {
+            val location = LatLng(lat, lng)
+            mMap.addMarker(MarkerOptions().position(location).title(address ?: ""))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
+        } else {
+            if (!displayOnly) {
+                enableMyLocation()
+            }
+        }
+
+        if (!displayOnly) {
+            mMap.setOnMapClickListener { latLng ->
+                mMap.clear()
+                mMap.addMarker(MarkerOptions().position(latLng))
+                selectedLatLng = latLng
+                getAddressFromLatLng(latLng)
+            }
         }
     }
+
     private fun enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION

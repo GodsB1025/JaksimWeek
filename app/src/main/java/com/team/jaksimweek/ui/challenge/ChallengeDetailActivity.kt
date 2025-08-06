@@ -152,6 +152,15 @@ class ChallengeDetailActivity : AppCompatActivity() {
         if (challenge.location != null) {
             binding.tvLocation.text = challenge.location.addressName
             binding.tvLocation.visibility = View.VISIBLE
+            binding.tvLocation.setOnClickListener {
+                val intent = Intent(this, MapSelectActivity::class.java).apply {
+                    putExtra("latitude", challenge.location.latitude)
+                    putExtra("longitude", challenge.location.longitude)
+                    putExtra("address", challenge.location.addressName)
+                    putExtra("displayOnly", true)
+                }
+                startActivity(intent)
+            }
         } else {
             binding.tvLocation.visibility = View.GONE
         }
