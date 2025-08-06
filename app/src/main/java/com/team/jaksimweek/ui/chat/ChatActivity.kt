@@ -13,6 +13,14 @@ import com.google.firebase.storage.FirebaseStorage
 import com.team.jaksimweek.data.model.ChatMessage
 import com.team.jaksimweek.data.model.User
 import com.team.jaksimweek.databinding.ActivityChatBinding
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
+import com.team.jaksimweek.R
+import com.team.jaksimweek.adapter.ChatAdapter
+import com.team.jaksimweek.adapter.ParticipantAdapter
+import com.team.jaksimweek.data.model.ChatRoom
+import com.team.jaksimweek.databinding.DialogParticipantListBinding
 
 class ChatActivity : AppCompatActivity() {
 
@@ -26,6 +34,8 @@ class ChatActivity : AppCompatActivity() {
     private val storage by lazy { FirebaseStorage.getInstance() }
 
     private var myUserInfo: User? = null
+    private var currentChatRoom: ChatRoom? = null
+    private var roomType: String? = null
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -54,6 +64,11 @@ class ChatActivity : AppCompatActivity() {
             return
         }
 
+        database.child("chatRooms").child(roomId).get().addOnSuccessListener {
+            currentChatRoom = it.getValue(ChatRoom::class.java)
+            invalidateOptionsMenu()
+        }
+
         setupRecyclerView()
         loadMessages(roomId)
 
@@ -68,6 +83,52 @@ class ChatActivity : AppCompatActivity() {
         binding.btnAddImage.setOnClickListener {
             galleryLauncher.launch("image/*")
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        if (currentChatRoom?.type == "group") {
+            menuInflater.inflate(R.menu.chat_menu, menu)
+        }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menu_view_participants -> {
+                showParticipantList()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showParticipantList() {
+        val participantUids = currentChatRoom?.participants?.keys?.toList()
+        if (participantUids.isNullOrEmpty()) {
+            Toast.makeText(this, "참여자 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userList = mutableListOf<User>()
+        val dialogBinding = DialogParticipantListBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.rvParticipants.layoutManager = LinearLayoutManager(this)
+
+        firestore.collection("users").whereIn("uid", participantUids).get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val user = document.toObject(User::class.java)
+                    userList.add(user)
+                }
+                dialogBinding.rvParticipants.adapter = ParticipantAdapter(userList)
+                dialog.show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "참여자 목록을 불러오는 데 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun setupRecyclerView() {

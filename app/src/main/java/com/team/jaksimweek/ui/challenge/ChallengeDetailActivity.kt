@@ -19,7 +19,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.team.jaksimweek.R
 import com.team.jaksimweek.data.model.Challenge
 import com.team.jaksimweek.databinding.ActivityChallengeDetailBinding
-import com.team.jaksimweek.ui.chat.ChatUtil
+import com.team.jaksimweek.util.ChatUtil
 
 class ChallengeDetailActivity : AppCompatActivity() {
 

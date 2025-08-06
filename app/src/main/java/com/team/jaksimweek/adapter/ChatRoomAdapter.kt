@@ -5,12 +5,12 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.team.jaksimweek.databinding.ItemChatRoomBinding // ‼️ 뷰바인딩 클래스 (아래 XML 생성 필요)
-import com.team.jaksimweek.data.model.ChatRoom
-import java.text.SimpleDateFormat
-import java.util.*
 import com.bumptech.glide.Glide
 import com.team.jaksimweek.R
+import com.team.jaksimweek.data.model.ChatRoom
+import com.team.jaksimweek.databinding.ItemChatRoomBinding
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ChatRoomAdapter(private val onItemClick: (ChatRoom) -> Unit) :
     ListAdapter<ChatRoom, ChatRoomAdapter.ChatRoomViewHolder>(ChatRoomDiffCallback()) {
@@ -22,6 +22,14 @@ class ChatRoomAdapter(private val onItemClick: (ChatRoom) -> Unit) :
 
     override fun onBindViewHolder(holder: ChatRoomViewHolder, position: Int) {
         holder.bind(getItem(position))
+    }
+
+    fun getRoomName(chatRoom: ChatRoom): String {
+        return if (chatRoom.type == "1on1") {
+            chatRoom.partnerNickname ?: "대화 상대"
+        } else {
+            chatRoom.roomName ?: "그룹 채팅"
+        }
     }
 
     class ChatRoomViewHolder(

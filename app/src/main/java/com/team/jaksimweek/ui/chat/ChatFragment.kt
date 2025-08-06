@@ -1,4 +1,4 @@
-package com.team.jaksimweek.ui
+package com.team.jaksimweek.ui.chat
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,17 +6,19 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.team.jaksimweek.adapter.ChatRoomAdapter
-import com.team.jaksimweek.databinding.FragmentChatBinding
-import com.team.jaksimweek.ui.chat.ChatActivity
-import com.team.jaksimweek.data.model.ChatRoom
-import com.team.jaksimweek.ui.chat.UserSearchActivity
 import com.google.firebase.firestore.FirebaseFirestore
+import com.team.jaksimweek.adapter.ChatRoomAdapter
+import com.team.jaksimweek.data.model.ChatRoom
 import com.team.jaksimweek.data.model.User
+import com.team.jaksimweek.databinding.FragmentChatBinding
 
 class ChatFragment : Fragment() {
 
@@ -26,9 +28,10 @@ class ChatFragment : Fragment() {
     private lateinit var chatRoomAdapter: ChatRoomAdapter
     private val auth by lazy { FirebaseAuth.getInstance() }
     private val database by lazy { FirebaseDatabase.getInstance().reference }
+    private val firestore by lazy { FirebaseFirestore.getInstance() }
+
     private val chatRooms = mutableListOf<ChatRoom>()
     private val chatRoomListeners = mutableMapOf<String, ValueEventListener>()
-    private val firestore by lazy { FirebaseFirestore.getInstance() }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,6 +45,7 @@ class ChatFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
+        setupSwipeToDelete()
         loadUserChatRooms()
 
         binding.btnStartChatFlow.setOnClickListener {
@@ -53,7 +57,8 @@ class ChatFragment : Fragment() {
         chatRoomAdapter = ChatRoomAdapter { chatRoom ->
             val intent = Intent(requireContext(), ChatActivity::class.java).apply {
                 putExtra("roomId", chatRoom.roomId)
-                putExtra("roomName", chatRoom.roomName)
+                putExtra("roomType", chatRoom.type)
+                putExtra("roomName", chatRoomAdapter.getRoomName(chatRoom))
             }
             startActivity(intent)
         }
@@ -61,6 +66,50 @@ class ChatFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = chatRoomAdapter
         }
+    }
+
+    private fun setupSwipeToDelete() {
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
+            0, ItemTouchHelper.LEFT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val chatRoomToDelete = chatRoomAdapter.currentList[position]
+
+                AlertDialog.Builder(requireContext())
+                    .setTitle("채팅방 나가기")
+                    .setMessage("정말로 '${chatRoomAdapter.getRoomName(chatRoomToDelete)}' 채팅방을 나가시겠습니까?\n대화 내용이 모두 삭제됩니다.")
+                    .setPositiveButton("나가기") { _, _ ->
+                        deleteChatRoomForCurrentUser(chatRoomToDelete.roomId)
+                    }
+                    .setNegativeButton("취소") { _, _ ->
+                        chatRoomAdapter.notifyItemChanged(position)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+        }
+        ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(binding.rvChatRooms)
+    }
+
+    private fun deleteChatRoomForCurrentUser(roomId: String) {
+        val myUid = auth.currentUser?.uid ?: return
+
+        database.child("user-chats").child(myUid).child(roomId).removeValue()
+            .addOnSuccessListener {
+                Toast.makeText(context, "채팅방에서 나갔습니다.", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(context, "나가기 실패: 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun loadUserChatRooms() {

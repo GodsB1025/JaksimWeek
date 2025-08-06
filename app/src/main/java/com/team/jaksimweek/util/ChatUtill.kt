@@ -1,4 +1,4 @@
-package com.team.jaksimweek.ui.chat
+package com.team.jaksimweek.util
 
 import android.util.Log
 import com.google.firebase.database.FirebaseDatabase

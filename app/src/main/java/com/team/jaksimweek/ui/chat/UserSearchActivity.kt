@@ -3,7 +3,6 @@ package com.team.jaksimweek.ui.chat
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -11,8 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.team.jaksimweek.adapter.UserSearchAdapter
 import com.team.jaksimweek.databinding.ActivityUserSearchBinding
-import com.team.jaksimweek.ui.chat.ChatActivity
-import com.team.jaksimweek.ui.chat.ChatUtil
+import com.team.jaksimweek.util.ChatUtil
 import com.team.jaksimweek.viewmodel.ChatViewModel
 
 class UserSearchActivity : AppCompatActivity() {

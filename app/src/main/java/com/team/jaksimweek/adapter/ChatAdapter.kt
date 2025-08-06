@@ -1,4 +1,4 @@
-package com.team.jaksimweek.ui.chat
+package com.team.jaksimweek.adapter
 
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +10,8 @@ import com.bumptech.glide.Glide
 import com.team.jaksimweek.R
 import com.team.jaksimweek.data.model.ChatMessage
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class ChatAdapter(private val myUid: String) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
