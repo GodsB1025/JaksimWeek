@@ -7,6 +7,7 @@ data class Comment(
     @DocumentId val id: String = "",
     val writerUid: String = "",
     val writerNickname: String? = null,
+    val writerProfileImageUrl: String? = null,
     val content: String = "",
     val createdAt: Timestamp = Timestamp.now()
 )

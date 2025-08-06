@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import com.team.jaksimweek.R
 import com.team.jaksimweek.databinding.ActivityMainBinding
-import com.team.jaksimweek.ui.auth.LoginActivity
 import com.team.jaksimweek.ui.challenge.AddPostActivity
 import com.team.jaksimweek.ui.home.HomeFragment
 import com.team.jaksimweek.ui.ChatFragment
@@ -21,7 +20,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        replaceFragment(HomeFragment())
+        if (savedInstanceState == null) {
+            replaceFragment(HomeFragment())
+        }
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -34,8 +35,8 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_post -> {
-                     startActivity(Intent(this, AddPostActivity::class.java))
-                    true
+                    startActivity(Intent(this, AddPostActivity::class.java))
+                    false
                 }
                 R.id.navigation_profile -> {
                     replaceFragment(ProfileFragment())
@@ -43,6 +44,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 else -> false
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
+        if (currentFragment is HomeFragment) {
+            binding.bottomNavigation.selectedItemId = R.id.navigation_home
         }
     }
 

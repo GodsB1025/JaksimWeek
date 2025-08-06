@@ -147,6 +147,7 @@ class ChallengeDetailActivity : AppCompatActivity() {
         binding.tvCreatorNickname.text = "게시자: ${challenge.creatorNickname ?: "정보 없음"}"
         binding.tvParticipantCount.text = "참여 인원: ${challenge.participantCount}명"
         binding.tvChallengeDescription.text = challenge.description
+        binding.tvLikeCount.text = challenge.likeCount.toString()
 
         if (challenge.location != null) {
             binding.tvLocation.text = challenge.location.addressName

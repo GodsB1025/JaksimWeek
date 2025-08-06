@@ -27,6 +27,9 @@
         android:theme="@style/Theme.JaksimWeek"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ui.auth.LoginActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.chat.UserSearchActivity"
             android:exported="false" />
         <activity
@@ -50,11 +53,11 @@
             android:name=".ui.main.MainActivity"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".ui.auth.LoginActivity"
-            android:exported="true">
+            android:name=".ui.main.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.JaksimWeek.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

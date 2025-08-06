@@ -5,8 +5,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -56,6 +59,17 @@ class CommentsFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+
+        view.viewTreeObserver.addOnGlobalLayoutListener {
+            val bottomSheet = dialog?.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+            if (bottomSheet != null) {
+                val behavior = BottomSheetBehavior.from(bottomSheet)
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                behavior.peekHeight = 0
+            }
+        }
+
         setupRecyclerView()
         loadComments()
 
@@ -91,7 +105,9 @@ class CommentsFragment : BottomSheetDialogFragment() {
                 if (snapshots != null) {
                     val comments = snapshots.toObjects(Comment::class.java)
                     commentAdapter.updateData(comments)
-                    binding.commentRecyclerView.scrollToPosition(comments.size - 1)
+                    if (comments.isNotEmpty()) {
+                        binding.commentRecyclerView.scrollToPosition(comments.size - 1)
+                    }
                 }
             }
     }
@@ -106,10 +122,12 @@ class CommentsFragment : BottomSheetDialogFragment() {
         firestore.collection("users").document(currentUser.uid).get()
             .addOnSuccessListener { userDocument ->
                 val nickname = userDocument.getString("nickname") ?: "익명"
+                val profileImageUrl = userDocument.getString("profileImageUrl")
 
                 val comment = Comment(
                     writerUid = currentUser.uid,
                     writerNickname = nickname,
+                    writerProfileImageUrl = profileImageUrl,
                     content = content
                 )
 
