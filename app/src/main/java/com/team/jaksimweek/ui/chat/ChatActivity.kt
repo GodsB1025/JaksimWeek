@@ -1,26 +1,36 @@
 package com.team.jaksimweek.ui.chat
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
-import com.team.jaksimweek.data.model.ChatMessage
-import com.team.jaksimweek.data.model.User
-import com.team.jaksimweek.databinding.ActivityChatBinding
-import android.view.Menu
-import android.view.MenuItem
-import androidx.appcompat.app.AlertDialog
 import com.team.jaksimweek.R
 import com.team.jaksimweek.adapter.ChatAdapter
 import com.team.jaksimweek.adapter.ParticipantAdapter
+import com.team.jaksimweek.data.model.ChatMessage
 import com.team.jaksimweek.data.model.ChatRoom
+import com.team.jaksimweek.data.model.User
+import com.team.jaksimweek.databinding.ActivityChatBinding
 import com.team.jaksimweek.databinding.DialogParticipantListBinding
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ChatActivity : AppCompatActivity() {
 
@@ -36,6 +46,24 @@ class ChatActivity : AppCompatActivity() {
     private var myUserInfo: User? = null
     private var currentChatRoom: ChatRoom? = null
     private var roomType: String? = null
+    private var photoUri: Uri? = null
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                dispatchTakePictureIntent()
+            } else {
+                Toast.makeText(this, "카메라 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { isSuccess ->
+        if (isSuccess) {
+            photoUri?.let {
+                uploadImage(it)
+            }
+        }
+    }
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -81,7 +109,7 @@ class ChatActivity : AppCompatActivity() {
         }
 
         binding.btnAddImage.setOnClickListener {
-            galleryLauncher.launch("image/*")
+            showImageSelectionDialog()
         }
     }
 
@@ -96,6 +124,10 @@ class ChatActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.menu_view_participants -> {
                 showParticipantList()
+                true
+            }
+            android.R.id.home -> {
+                finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -196,6 +228,62 @@ class ChatActivity : AppCompatActivity() {
             "timestamp" to ServerValue.TIMESTAMP
         )
         sendMessage(messageToSend)
+    }
+
+    private fun showImageSelectionDialog() {
+        val options = arrayOf("카메라로 촬영하기", "갤러리에서 선택하기")
+        AlertDialog.Builder(this)
+            .setTitle("이미지 전송")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> checkCameraPermission()
+                    1 -> galleryLauncher.launch("image/*")
+                }
+            }
+            .show()
+    }
+
+    private fun checkCameraPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                dispatchTakePictureIntent()
+            }
+            else -> {
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    private fun dispatchTakePictureIntent() {
+        val photoFile: File? = try {
+            createImageFile()
+        } catch (ex: IOException) {
+            Toast.makeText(this, "이미지 파일을 생성하는 데 실패했습니다.", Toast.LENGTH_SHORT).show()
+            null
+        }
+        photoFile?.also {
+            val photoURI: Uri = FileProvider.getUriForFile(
+                this,
+                "${applicationContext.packageName}.provider",
+                it
+            )
+            photoUri = photoURI
+            takePictureLauncher.launch(photoURI)
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA).format(Date())
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
+        )
     }
 
     private fun uploadImage(uri: Uri) {
