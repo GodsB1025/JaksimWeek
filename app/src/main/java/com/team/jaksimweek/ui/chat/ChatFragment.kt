@@ -2,23 +2,22 @@ package com.team.jaksimweek.ui.chat
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.database.FirebaseDatabase
 import com.team.jaksimweek.adapter.ChatRoomAdapter
-import com.team.jaksimweek.data.model.ChatRoom
-import com.team.jaksimweek.data.model.User
 import com.team.jaksimweek.databinding.FragmentChatBinding
+import com.team.jaksimweek.viewmodel.MainViewModel
+import kotlinx.coroutines.launch
 
 class ChatFragment : Fragment() {
 
@@ -26,12 +25,9 @@ class ChatFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var chatRoomAdapter: ChatRoomAdapter
+    private val viewModel: MainViewModel by activityViewModels()
     private val auth by lazy { FirebaseAuth.getInstance() }
     private val database by lazy { FirebaseDatabase.getInstance().reference }
-    private val firestore by lazy { FirebaseFirestore.getInstance() }
-
-    private val chatRooms = mutableListOf<ChatRoom>()
-    private val chatRoomListeners = mutableMapOf<String, ValueEventListener>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,7 +42,12 @@ class ChatFragment : Fragment() {
 
         setupRecyclerView()
         setupSwipeToDelete()
-        loadUserChatRooms()
+
+        lifecycleScope.launch {
+            viewModel.chatRooms.collect { chatRooms ->
+                chatRoomAdapter.submitList(chatRooms)
+            }
+        }
 
         binding.btnStartChatFlow.setOnClickListener {
             startActivity(Intent(requireContext(), UserSearchActivity::class.java))
@@ -104,99 +105,10 @@ class ChatFragment : Fragment() {
         val myUid = auth.currentUser?.uid ?: return
 
         database.child("user-chats").child(myUid).child(roomId).removeValue()
-            .addOnSuccessListener {
-                Toast.makeText(context, "채팅방에서 나갔습니다.", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener {
-                Toast.makeText(context, "나가기 실패: 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun loadUserChatRooms() {
-        val myUid = auth.currentUser?.uid ?: return
-        val userChatsRef = database.child("user-chats").child(myUid)
-
-        userChatsRef.addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                val roomId = snapshot.key ?: return
-                listenForChatRoomUpdates(roomId)
-            }
-
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
-
-            override fun onChildRemoved(snapshot: DataSnapshot) {
-                val roomId = snapshot.key ?: return
-                removeChatRoomListener(roomId)
-            }
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("ChatFragment", "Failed to load user chat rooms.", error.toException())
-            }
-        })
-    }
-
-    private fun listenForChatRoomUpdates(roomId: String) {
-        val chatRoomRef = database.child("chatRooms").child(roomId)
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val chatRoom = snapshot.getValue(ChatRoom::class.java)
-                chatRoom?.let {
-                    if (it.type == "1on1") {
-                        val myUid = auth.currentUser?.uid
-                        val partnerUid = it.participants.keys.firstOrNull { uid -> uid != myUid }
-                        if (partnerUid != null) {
-                            it.partnerUid = partnerUid
-                            firestore.collection("users").document(partnerUid).get()
-                                .addOnSuccessListener { userDocument ->
-                                    val partnerUser = userDocument.toObject(User::class.java)
-                                    it.partnerNickname = partnerUser?.nickname
-                                    it.partnerProfileImageUrl = partnerUser?.profileImageUrl
-                                    updateChatRoomList(roomId, it)
-                                }
-                        }
-                    } else {
-                        updateChatRoomList(roomId, it)
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("ChatFragment", "Failed to listen for chat room updates.", error.toException())
-            }
-        }
-        chatRoomRef.addValueEventListener(listener)
-        chatRoomListeners[roomId] = listener
-    }
-
-    private fun updateChatRoomList(roomId: String, chatRoom: ChatRoom) {
-        val existingIndex = chatRooms.indexOfFirst { it.roomId == roomId }
-        if (existingIndex != -1) {
-            chatRooms[existingIndex] = chatRoom
-        } else {
-            chatRooms.add(chatRoom)
-        }
-        chatRooms.sortByDescending { room -> room.lastMessageTimestamp }
-        chatRoomAdapter.submitList(chatRooms.toList())
-    }
-
-    private fun removeChatRoomListener(roomId: String) {
-        chatRoomListeners[roomId]?.let {
-            database.child("chatRooms").child(roomId).removeEventListener(it)
-            chatRoomListeners.remove(roomId)
-        }
-        val roomIndex = chatRooms.indexOfFirst { it.roomId == roomId }
-        if (roomIndex != -1) {
-            chatRooms.removeAt(roomIndex)
-            chatRoomAdapter.submitList(chatRooms.toList())
-        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        chatRoomListeners.forEach { (roomId, listener) ->
-            database.child("chatRooms").child(roomId).removeEventListener(listener)
-        }
-        chatRoomListeners.clear()
         _binding = null
     }
 }

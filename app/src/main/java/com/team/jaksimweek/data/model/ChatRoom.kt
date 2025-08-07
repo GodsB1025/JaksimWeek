@@ -9,5 +9,6 @@ data class ChatRoom(
     var type: String = "",
     var partnerUid: String? = null,
     var partnerNickname: String? = null,
-    var partnerProfileImageUrl: String? = null
+    var partnerProfileImageUrl: String? = null,
+    var unreadCount: Int = 0
 )

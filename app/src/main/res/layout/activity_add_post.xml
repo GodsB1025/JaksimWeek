@@ -17,7 +17,9 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize">
+            android:layout_height="?attr/actionBarSize"
+            app:title="챌린지 생성"
+            app:titleTextColor="?attr/colorPrimary">
 
             <Button
                 android:id="@+id/saveButton"

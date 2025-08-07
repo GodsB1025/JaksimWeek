@@ -94,6 +94,8 @@ class AddPostActivity : AppCompatActivity() {
         binding = ActivityAddPostBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setupClickListeners()
+
+        setSupportActionBar(binding.toolbar)
     }
 
     private fun setupClickListeners() {

@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -26,6 +27,7 @@ import com.team.jaksimweek.data.model.ChatRoom
 import com.team.jaksimweek.data.model.User
 import com.team.jaksimweek.databinding.ActivityChatBinding
 import com.team.jaksimweek.databinding.DialogParticipantListBinding
+import com.team.jaksimweek.viewmodel.MainViewModel
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -42,11 +44,15 @@ class ChatActivity : AppCompatActivity() {
     private val auth by lazy { FirebaseAuth.getInstance() }
     private val firestore by lazy { FirebaseFirestore.getInstance() }
     private val storage by lazy { FirebaseStorage.getInstance() }
+    private val viewModel: MainViewModel by viewModels()
 
     private var myUserInfo: User? = null
     private var currentChatRoom: ChatRoom? = null
     private var roomType: String? = null
     private var photoUri: Uri? = null
+
+    private var unreadCountListener: ValueEventListener? = null
+    private lateinit var unreadCountRef: DatabaseReference
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -112,6 +118,33 @@ class ChatActivity : AppCompatActivity() {
             showImageSelectionDialog()
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        val myUid = auth.currentUser?.uid
+        if (myUid != null && ::roomId.isInitialized) {
+            unreadCountRef = database.child("user-chats").child(myUid).child(roomId).child("unreadCount")
+            unreadCountListener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists() && snapshot.getValue(Int::class.java) != 0) {
+                        unreadCountRef.setValue(0)
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            }
+            unreadCountRef.addValueEventListener(unreadCountListener!!)
+        }
+        viewModel.setCurrentChatRoomId(roomId)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.setCurrentChatRoomId(null)
+        if (::unreadCountRef.isInitialized && unreadCountListener != null) {
+            unreadCountRef.removeEventListener(unreadCountListener!!)
+        }
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         if (currentChatRoom?.type == "group") {
@@ -209,6 +242,28 @@ class ChatActivity : AppCompatActivity() {
                 "lastMessageTimestamp" to ServerValue.TIMESTAMP
             )
             roomRef.updateChildren(lastMessageUpdate)
+
+            currentChatRoom?.participants?.keys?.forEach { participantUid ->
+                if (participantUid != auth.currentUser?.uid) {
+                    val userChatRef = database.child("user-chats").child(participantUid).child(roomId).child("unreadCount")
+                    userChatRef.runTransaction(object : Transaction.Handler {
+                        override fun doTransaction(currentData: MutableData): Transaction.Result {
+                            var count = currentData.getValue(Int::class.java) ?: 0
+                            count++
+                            currentData.value = count
+                            return Transaction.success(currentData)
+                        }
+
+                        override fun onComplete(
+                            error: DatabaseError?,
+                            committed: Boolean,
+                            currentData: DataSnapshot?
+                        ) {
+                        }
+                    })
+                }
+            }
+
         }.addOnFailureListener {
             Toast.makeText(this, "메시지 전송에 실패했습니다.", Toast.LENGTH_SHORT).show()
         }

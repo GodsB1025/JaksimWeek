@@ -27,8 +27,9 @@ object ChatUtil {
 
                 roomRef.setValue(newRoom).addOnSuccessListener {
                     Log.d("ChatDebug", "🔷 ChatUtil.setValue() succeeded, roomId=$chatRoomId")
-                    userChatsRef.child(myUid).child(chatRoomId).setValue(true)
-                    userChatsRef.child(otherUid).child(chatRoomId).setValue(true)
+                    val userChatData = mapOf("unreadCount" to 0)
+                    userChatsRef.child(myUid).child(chatRoomId).setValue(userChatData)
+                    userChatsRef.child(otherUid).child(chatRoomId).setValue(userChatData)
                     callback(chatRoomId)
                 }.addOnFailureListener { e ->
                     Log.e("ChatDebug", "🔶 ChatUtil.setValue() failed", e)
@@ -60,8 +61,9 @@ object ChatUtil {
                 )
 
                 roomRef.setValue(newRoom).addOnSuccessListener {
+                    val userChatData = mapOf("unreadCount" to 0)
                     participantUids.forEach { uid ->
-                        userChatsRef.child(uid).child(chatRoomId).setValue(true)
+                        userChatsRef.child(uid).child(chatRoomId).setValue(userChatData)
                     }
                     callback(chatRoomId)
                 }.addOnFailureListener {

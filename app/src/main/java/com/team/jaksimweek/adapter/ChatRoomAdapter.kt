@@ -1,6 +1,8 @@
 package com.team.jaksimweek.adapter
 
+import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -24,6 +26,25 @@ class ChatRoomAdapter(private val onItemClick: (ChatRoom) -> Unit) :
         holder.bind(getItem(position))
     }
 
+    override fun onBindViewHolder(
+        holder: ChatRoomViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads)
+            return
+        }
+
+        val bundle = payloads[0] as Bundle
+        if (bundle.containsKey("unreadCount")) {
+            holder.updateUnreadCount(bundle.getInt("unreadCount"))
+        }
+        if (bundle.containsKey("lastMessage")) {
+            holder.updateLastMessage(bundle.getString("lastMessage")!!, bundle.getLong("lastMessageTimestamp"))
+        }
+    }
+
     fun getRoomName(chatRoom: ChatRoom): String {
         return if (chatRoom.type == "1on1") {
             chatRoom.partnerNickname ?: "대화 상대"
@@ -38,6 +59,7 @@ class ChatRoomAdapter(private val onItemClick: (ChatRoom) -> Unit) :
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(chatRoom: ChatRoom) {
+            // Full bind
             binding.tvLastMessage.text = chatRoom.lastMessage
             binding.tvTimestamp.text = formatTimestamp(chatRoom.lastMessageTimestamp)
 
@@ -53,9 +75,25 @@ class ChatRoomAdapter(private val onItemClick: (ChatRoom) -> Unit) :
                 binding.ivRoomIcon.setImageResource(R.drawable.ic_group)
             }
 
+            updateUnreadCount(chatRoom.unreadCount)
+
             itemView.setOnClickListener {
                 onItemClick(chatRoom)
             }
+        }
+
+        fun updateUnreadCount(unreadCount: Int) {
+            if (unreadCount > 0) {
+                binding.tvUnreadCount.text = unreadCount.toString()
+                binding.tvUnreadCount.visibility = View.VISIBLE
+            } else {
+                binding.tvUnreadCount.visibility = View.GONE
+            }
+        }
+
+        fun updateLastMessage(message: String, timestamp: Long) {
+            binding.tvLastMessage.text = message
+            binding.tvTimestamp.text = formatTimestamp(timestamp)
         }
 
         private fun formatTimestamp(timestamp: Long): String {
@@ -72,6 +110,20 @@ class ChatRoomAdapter(private val onItemClick: (ChatRoom) -> Unit) :
 
         override fun areContentsTheSame(oldItem: ChatRoom, newItem: ChatRoom): Boolean {
             return oldItem == newItem
+        }
+
+        override fun getChangePayload(oldItem: ChatRoom, newItem: ChatRoom): Any? {
+            val diffBundle = Bundle()
+
+            if (oldItem.unreadCount != newItem.unreadCount) {
+                diffBundle.putInt("unreadCount", newItem.unreadCount)
+            }
+            if (oldItem.lastMessage != newItem.lastMessage || oldItem.lastMessageTimestamp != newItem.lastMessageTimestamp) {
+                diffBundle.putString("lastMessage", newItem.lastMessage)
+                diffBundle.putLong("lastMessageTimestamp", newItem.lastMessageTimestamp)
+            }
+
+            return if (diffBundle.isEmpty) null else diffBundle
         }
     }
 }
